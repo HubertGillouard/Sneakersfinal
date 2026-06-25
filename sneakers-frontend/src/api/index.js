@@ -52,23 +52,25 @@ export const updateProfile = (payload) => request('/users/me', { method:'PATCH',
 export const getReviews = (productId) => request(`/reviews/${productId}`);
 export const addReview = (productId, payload) => request(`/reviews/${productId}`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
 export const getAdminStats = () => request('/admin/stats');
-export const getMappingSources = () => request('/mapping/sources');
-export const refreshWebMapping = (targetCount=100) => request('/mapping/refresh', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ targetCount }) });
+export const submitReconditioning = (payload) => request('/reconditioning', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+export const getReconditioning = () => request('/reconditioning');
+export const updateReconditioning = (id, payload) => request(`/reconditioning/${id}`, { method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+export const getReconditioningStats = () => request('/reconditioning/stats');
 export const exportData = () => request('/rgpd/export');
 export const deleteData = () => request('/rgpd/delete', { method:'DELETE' });
 
 const CART_KEY = 'cart.v4';
 export const getCart = () => { try { return JSON.parse(localStorage.getItem(CART_KEY) || '[]'); } catch { return []; } };
 const saveCart = (items) => localStorage.setItem(CART_KEY, JSON.stringify(items));
-export function addCart(product, size, qty=1) {
+export function addCart(product, size, qty=1, color='') {
   const items = getCart();
-  const found = items.find(i => i.productId === product.id && String(i.size) === String(size));
+  const found = items.find(i => i.productId === product.id && String(i.size) === String(size) && (i.color||'') === (color||''));
   if (found) found.qty += Number(qty);
-  else items.push({ productId: product.id, name: product.name, brand: product.brand, image: product.image, size: String(size), price: Number(product.price), qty: Number(qty) });
+  else items.push({ productId: product.id, name: product.name, brand: product.brand, image: product.image, size: String(size), color: color||'', price: Number(product.price), qty: Number(qty) });
   saveCart(items); return items;
 }
-export function setQty(productId, size, qty) { const items = getCart().map(i => i.productId===productId && String(i.size)===String(size) ? { ...i, qty: Math.max(1, Number(qty||1)) } : i); saveCart(items); return items; }
-export function removeCart(productId, size) { const items = getCart().filter(i => !(i.productId===productId && String(i.size)===String(size))); saveCart(items); return items; }
+export function setQty(productId, size, qty, color='') { const items = getCart().map(i => i.productId===productId && String(i.size)===String(size) && (i.color||'')===(color||'') ? { ...i, qty: Math.max(1, Number(qty||1)) } : i); saveCart(items); return items; }
+export function removeCart(productId, size, color='') { const items = getCart().filter(i => !(i.productId===productId && String(i.size)===String(size) && (i.color||'')===(color||''))); saveCart(items); return items; }
 export function clearCart() { saveCart([]); }
 export const cartCount = () => getCart().reduce((s,i)=>s+Number(i.qty||0),0);
 
@@ -83,6 +85,20 @@ export function toggleWishlist(product) {
   return list;
 }
 export const isWishlisted = (id) => getWishlist().some(p => p.id === id);
+
+const REMEMBER_KEY = 'remembered_accounts.v1';
+export function getRememberedAccounts() { try { return JSON.parse(localStorage.getItem(REMEMBER_KEY) || '[]'); } catch { return []; } }
+export function rememberAccount(email, password) {
+  const list = getRememberedAccounts().filter(a => a.email !== email);
+  list.push({ email, password });
+  localStorage.setItem(REMEMBER_KEY, JSON.stringify(list));
+  return list;
+}
+export function forgetAccount(email) {
+  const list = getRememberedAccounts().filter(a => a.email !== email);
+  localStorage.setItem(REMEMBER_KEY, JSON.stringify(list));
+  return list;
+}
 
 const CONSENT_KEY = 'consent.v2';
 function getCookie(name) {

@@ -1,0 +1,13 @@
+[
+  {
+    "id": 1781638312051,
+    "prenom": "Max",
+    "email": "max@hubert.com",
+    "marque": "Nike",
+    "pointure": "42",
+    "etat": "bon",
+    "message": "",
+    "status": "pending",
+    "createdAt": "2026-06-16T19:31:52.051Z"
+  }
+]

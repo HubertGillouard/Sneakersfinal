@@ -1,0 +1,11 @@
+[
+  {
+    "id": 1781637820509,
+    "productId": 123,
+    "userId": 1,
+    "userEmail": "admin@test.com",
+    "rating": 5,
+    "comment": "",
+    "createdAt": "2026-06-16T19:23:40.509Z"
+  }
+]

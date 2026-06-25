@@ -25,7 +25,7 @@ const PRODUCTS_FILE = path.join(DATA_DIR, 'products.json');
 const MAPPING_DIR = path.join(DATA_DIR, 'mapping');
 const MAPPING_AUDIT_FILE = path.join(MAPPING_DIR, 'last-import.json');
 
-const TARGET_DEFAULT = Number(process.env.MAPPING_TARGET || 100);
+const TARGET_DEFAULT = Number(process.env.MAPPING_TARGET || 120);
 
 const QUERIES = [
   'nike air max',
@@ -118,8 +118,8 @@ function detectCategory(title) {
 }
 function sizeRange(category) {
   if (category === 'enfants') return ['28', '29', '30', '31', '32', '33', '34', '35'];
-  if (category === 'femmes') return ['36', '37', '38', '39', '40', '41'];
-  return ['40', '41', '42', '43', '44', '45'];
+  if (category === 'femmes') return ['36', '37', '38', '39', '40', '41', '42'];
+  return ['40', '41', '42', '43', '44', '45', '46', '47'];
 }
 function generateInternalVariants(productKey, category, price) {
   return sizeRange(category).map((size) => ({

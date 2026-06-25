@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const bcrypt = require('bcryptjs');
 
 const root = path.join(__dirname, '..');
 const dataDir = path.join(root, 'data');
@@ -75,8 +76,8 @@ const palettes = [
 const brands = ['Nike', 'Adidas', 'Jordan', 'New Balance', 'Puma', 'Asics'];
 const models = ['Air Runner', 'Campus Court', 'Retro High', 'Fresh Foam', 'Suede Street', 'Gel Pulse', 'Zoom Flux', 'Forum Move', 'Dunk Low', 'Ultra Glide'];
 const categories = [
-  { key: 'hommes', sizes: ['40','41','42','43','44','45'] },
-  { key: 'femmes', sizes: ['36','37','38','39','40','41'] },
+  { key: 'hommes', sizes: ['40','41','42','43','44','45','46','47'] },
+  { key: 'femmes', sizes: ['36','37','38','39','40','41','42'] },
   { key: 'enfants', sizes: ['28','29','30','31','32','33','34','35'] }
 ];
 
@@ -129,9 +130,9 @@ for (let i = 1; i <= 120; i++) {
 }
 
 const users = [
-  { id: 1, email: 'admin@test.com', password: 'admin', role: 'admin', firstName: 'Max', lastName: 'Admin' },
-  { id: 2, email: 'seller@test.com', password: 'seller', role: 'seller', firstName: 'Hubert', lastName: 'Seller' },
-  { id: 3, email: 'client@test.com', password: 'client', role: 'client', firstName: 'Jean', lastName: 'Client' }
+  { id: 1, email: 'admin@test.com', password: bcrypt.hashSync('admin', 10), role: 'admin', firstName: 'Max', lastName: 'Admin' },
+  { id: 2, email: 'seller@test.com', password: bcrypt.hashSync('seller', 10), role: 'seller', firstName: 'Hubert', lastName: 'Seller' },
+  { id: 3, email: 'client@test.com', password: bcrypt.hashSync('client', 10), role: 'client', firstName: 'Jean', lastName: 'Client' }
 ];
 
 fs.writeFileSync(path.join(dataDir, 'products.json'), JSON.stringify(products, null, 2), 'utf8');

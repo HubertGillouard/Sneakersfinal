@@ -3,6 +3,7 @@ const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 
 const app = express();
 const PORT = Number(process.env.PORT || 5051);
@@ -15,8 +16,8 @@ const USERS_FILE = path.join(DATA_DIR, 'users.json');
 const ORDERS_FILE = path.join(DATA_DIR, 'orders.json');
 const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
 const REVIEWS_FILE = path.join(DATA_DIR, 'reviews.json');
+const RECONDITIONING_FILE = path.join(DATA_DIR, 'reconditioning.json');
 const MAPPING_AUDIT_FILE = path.join(DATA_DIR, 'mapping', 'last-import.json');
-const { importWebMapping, SOURCES: MAPPING_SOURCES } = require('./scripts/import-web-mapping');
 
 app.use(cors());
 app.use(express.json({ limit: '2mb' }));
@@ -41,7 +42,9 @@ function saveOrders(v) { writeJson(ORDERS_FILE, v); }
 function reviews() { return readJson(REVIEWS_FILE, []); }
 function saveReviews(v) { writeJson(REVIEWS_FILE, v); }
 function settings() { return readJson(SETTINGS_FILE, { brandName: 'SneakR', accent: '#7c3aed' }); }
-function mappingAudit() { return readJson(MAPPING_AUDIT_FILE, { imported: 0, sources: [], warnings: ['Aucun import web lancé.'] }); }
+function reconditioning() { return readJson(RECONDITIONING_FILE, []); }
+function saveReconditioning(v) { writeJson(RECONDITIONING_FILE, v); }
+const BASE_RECONDITIONED = 2400;
 
 function sanitizeProduct(p) {
   const variants = Array.isArray(p.variants) ? p.variants : [];
@@ -74,7 +77,7 @@ app.get('/api/health', (_req, res) => res.json({ ok: true, settings: settings() 
 
 app.post('/api/auth/login', (req, res) => {
   const { email, password } = req.body || {};
-  const user = users().find(u => u.email === email && u.password === password);
+  const user = users().find(u => u.email === email && bcrypt.compareSync(password, u.password));
   if (!user) return res.status(401).json({ error: 'Identifiants invalides' });
   const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
   const { password: _pw, ...safeUser } = user;
@@ -93,7 +96,7 @@ app.post('/api/auth/register', (req, res) => {
   if (!email || !password) return res.status(400).json({ error: 'Email et mot de passe requis.' });
   const list = users();
   if (list.find(u => u.email === email)) return res.status(409).json({ error: 'Cet email est deja utilise.' });
-  const newUser = { id: Date.now(), email, password, role: 'client', firstName: firstName || '', lastName: lastName || '' };
+  const newUser = { id: Date.now(), email, password: bcrypt.hashSync(password, 10), role: 'client', firstName: firstName || '', lastName: lastName || '' };
   saveUsers([...list, newUser]);
   const tok = jwt.sign({ id: newUser.id, email: newUser.email, role: newUser.role }, JWT_SECRET, { expiresIn: '7d' });
   const { password: _pw, ...safeUser } = newUser;
@@ -118,7 +121,7 @@ app.post('/api/auth/reset-password', (req, res) => {
   const list = users();
   const idx = list.findIndex(u => u.email === email);
   if (idx === -1) return res.status(404).json({ error: 'Utilisateur introuvable.' });
-  list[idx].password = password;
+  list[idx].password = bcrypt.hashSync(password, 10);
   saveUsers(list);
   resetTokens.delete(email);
   res.json({ ok: true });
@@ -143,7 +146,7 @@ app.post('/api/users', auth, allow('admin'), (req, res) => {
   if (!email || !password || !role) return res.status(400).json({ error: 'email, password et role requis' });
   const list = users();
   if (list.find(u => u.email === email)) return res.status(409).json({ error: 'Email déjà utilisé' });
-  const newUser = { id: Date.now(), email, password, role };
+  const newUser = { id: Date.now(), email, password: bcrypt.hashSync(password, 10), role };
   saveUsers([...list, newUser]);
   const { password: _pw, ...safe } = newUser;
   res.status(201).json(safe);
@@ -170,6 +173,7 @@ app.get('/api/products', (req, res) => {
   const minPrice = req.query.minPrice !== undefined ? Number(req.query.minPrice) : null;
   const maxPrice = req.query.maxPrice !== undefined ? Number(req.query.maxPrice) : null;
   const sort = String(req.query.sort || 'featured');
+  const promo = String(req.query.promo || '') === 'true';
 
   let list = products().map(sanitizeProduct);
   if (q) list = list.filter(p => `${p.name} ${p.brand} ${p.description}`.toLowerCase().includes(q));
@@ -177,6 +181,9 @@ app.get('/api/products', (req, res) => {
   if (size) list = list.filter(p => p.variants.some(v => String(v.size) === size && Number(v.stock) > 0));
   if (!Number.isNaN(minPrice) && minPrice !== null) list = list.filter(p => Number(p.price) >= minPrice);
   if (!Number.isNaN(maxPrice) && maxPrice !== null) list = list.filter(p => Number(p.price) <= maxPrice);
+  if (promo) list = list.filter(p => Number(p.originalPrice) > Number(p.price));
+  const badge = String(req.query.badge || '');
+  if (badge) list = list.filter(p => p.badge === badge);
 
   if (sort === 'price_asc') list.sort((a,b)=>a.price-b.price);
   else if (sort === 'price_desc') list.sort((a,b)=>b.price-a.price);
@@ -210,7 +217,8 @@ app.post('/api/products', auth, allow('admin'), (req, res) => {
     image: body.image || '/images/placeholder.svg',
     description: body.description || '',
     colorway: body.colorway || 'Mixed',
-    badge: body.badge || 'Nouveau',
+    badge: body.badge || '',
+    colors: Array.isArray(body.colors) ? body.colors : [],
     featured: Boolean(body.featured),
     variants: variants.map((v, i) => ({ sku: v.sku || `SKU-${nextId}-${i+1}`, size: String(v.size), stock: Number(v.stock||0), price: Number(v.price || body.price || 0) }))
   };
@@ -226,6 +234,7 @@ app.patch('/api/products/:id', auth, allow('admin','seller'), (req, res) => {
   const body = req.body || {};
   const p = list[idx];
   ['brand','name','category','gender','image','description','colorway','badge'].forEach(k => { if (body[k] !== undefined) p[k] = body[k]; });
+  if (Array.isArray(body.colors)) p.colors = body.colors;
   ['price','originalPrice'].forEach(k => { if (body[k] !== undefined) p[k] = Number(body[k]); });
   if (body.featured !== undefined) p.featured = Boolean(body.featured);
   if (Array.isArray(body.variants)) {
@@ -303,34 +312,59 @@ app.patch('/api/orders/:id', auth, allow('admin','seller'), (req, res) => {
 });
 
 
-app.get('/api/mapping/sources', (_req, res) => {
-  res.json({
-    mode: mappingAudit().mode || 'real-sneaker-api-ready',
-    explanation: 'Catalogue importé depuis KicksDB ou catalogues publics Shopify.',
-    sources: MAPPING_SOURCES,
-    lastImport: mappingAudit()
-  });
+app.post('/api/reconditioning', (req, res) => {
+  const { prenom, email, marque, pointure, etat, message } = req.body || {};
+  if (!prenom || !email || !marque || !pointure) return res.status(400).json({ error: 'Prénom, email, marque et pointure sont requis.' });
+  const list = reconditioning();
+  const entry = { id: Date.now(), prenom, email, marque, pointure, etat: etat || 'bon', message: message || '', status: 'pending', createdAt: new Date().toISOString() };
+  list.push(entry);
+  saveReconditioning(list);
+  res.status(201).json({ ok: true, request: entry });
 });
 
-app.post('/api/mapping/refresh', auth, allow('admin'), async (req, res) => {
-  try {
-    const targetCount = Number(req.body?.targetCount || 100);
-    const result = await importWebMapping({ targetCount });
-    res.json({ ok: true, imported: result.audit.imported || 0, activeProducts: result.products.length, audit: result.audit });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+app.get('/api/reconditioning', auth, allow('admin','seller'), (_req, res) => {
+  res.json(reconditioning());
+});
+
+app.patch('/api/reconditioning/:id', auth, allow('admin','seller'), (req, res) => {
+  const list = reconditioning();
+  const entry = list.find(r => Number(r.id) === Number(req.params.id));
+  if (!entry) return res.status(404).json({ error: 'Demande introuvable' });
+  if (req.body.status) entry.status = req.body.status;
+  saveReconditioning(list);
+  res.json(entry);
+});
+
+app.get('/api/reconditioning/stats', (_req, res) => {
+  const list = reconditioning();
+  const accepted = list.filter(r => r.status === 'accepted').length;
+  res.json({
+    pending: list.filter(r => r.status === 'pending').length,
+    accepted,
+    total: list.length,
+    reconditionedTotal: BASE_RECONDITIONED + accepted
+  });
 });
 
 app.get('/api/admin/stats', auth, allow('admin','seller'), (_req, res) => {
   const ps = products().map(sanitizeProduct);
   const os = orders();
+  const recond = reconditioning();
+  const lastImport = readJson(MAPPING_AUDIT_FILE, null);
   res.json({
     products: ps.length,
     orders: os.length,
     revenue: os.reduce((s,o)=>s+Number(o.total||0),0),
     lowStock: ps.filter(p=>p.totalStock <= 6).length,
-    pending: os.filter(o=>o.shippingStatus !== 'delivered').length
+    pending: os.filter(o=>o.shippingStatus !== 'delivered').length,
+    reconditioningPending: recond.filter(r=>r.status === 'pending').length,
+    lastImport: lastImport ? {
+      source: lastImport.sources?.[0]?.name || lastImport.mode || 'Inconnu',
+      mode: lastImport.mode,
+      imported: lastImport.imported,
+      importedAt: lastImport.finishedAt,
+      counts: lastImport.counts
+    } : null
   });
 });
 
