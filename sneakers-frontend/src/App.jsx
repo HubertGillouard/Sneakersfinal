@@ -9,10 +9,11 @@ import {
   submitReconditioning, getReconditioning, updateReconditioning, getReconditioningStats,
   resolveImg, money, getCart, addCart, setQty, removeCart, clearCart, cartCount,
   getConsent, setConsent, getWishlist, toggleWishlist, isWishlisted,
-  getRememberedAccounts, rememberAccount, forgetAccount
+  getRememberedAccounts, rememberAccount, forgetAccount,
+  API_ORIGIN
 } from './api/index.js';
 
-const FALLBACK_IMG = 'https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=700&q=80';
+const FALLBACK_IMG = `${API_ORIGIN}/images/placeholder.svg`;
 function Img({ src, alt, className, style, loading }) {
   const [err, setErr] = React.useState(false);
   const prevSrc = React.useRef(src);

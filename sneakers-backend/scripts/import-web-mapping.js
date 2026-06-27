@@ -58,16 +58,16 @@ const SOURCES = [
 ];
 
 const LOCAL_BACKUP = [
-  ['Nike Air Runner', 'Nike', 'hommes', 129, '/images/sneaker-01-nike-campus-court.svg'],
-  ['Nike Dunk Court', 'Nike', 'femmes', 119, '/images/sneaker-02-nike-fresh-foam.svg'],
-  ['Jordan Retro High', 'Jordan', 'hommes', 179, '/images/sneaker-13-jordan-fresh-foam.svg'],
-  ['Adidas Samba OG', 'Adidas', 'femmes', 109, '/images/sneaker-07-adidas-forum-move.svg'],
-  ['Adidas Campus 00s', 'Adidas', 'hommes', 99, '/images/sneaker-09-adidas-campus-court.svg'],
-  ['New Balance 550', 'New Balance', 'hommes', 139, '/images/sneaker-20-new-balance-campus-court.svg'],
-  ['New Balance 9060', 'New Balance', 'femmes', 159, '/images/sneaker-21-new-balance-fresh-foam.svg'],
-  ['Puma Suede Classic', 'Puma', 'hommes', 89, '/images/sneaker-25-puma-gel-pulse.svg'],
-  ['ASICS Gel Lyte', 'ASICS', 'femmes', 125, '/images/sneaker-33-asics-gel-pulse.svg'],
-  ['Converse Chuck 70', 'Converse', 'enfants', 75, '/images/kids-neon.svg']
+  ['Nike Air Runner',      'Nike',        'hommes',  129, '/images/sneaker-01-nike-air-runner.svg'],
+  ['Nike Dunk Low',        'Nike',        'femmes',  119, '/images/sneaker-02-nike-dunk-low.svg'],
+  ['Jordan Retro High',    'Jordan',      'hommes',  179, '/images/sneaker-06-jordan-retro-high.svg'],
+  ['Adidas Samba OG',      'Adidas',      'femmes',  109, '/images/sneaker-04-adidas-samba-og.svg'],
+  ['Adidas Campus',        'Adidas',      'hommes',   99, '/images/sneaker-05-adidas-campus.svg'],
+  ['New Balance Fresh',    'New Balance', 'hommes',  139, '/images/sneaker-07-new-balance-fresh-foam.svg'],
+  ['New Balance Foam',     'New Balance', 'femmes',  159, '/images/sneaker-07-new-balance-fresh-foam.svg'],
+  ['Puma Suede',           'Puma',        'hommes',   89, '/images/sneaker-08-puma-suede.svg'],
+  ['Asics Gel Pulse',      'Asics',       'femmes',  125, '/images/sneaker-09-asics-gel-pulse.svg'],
+  ['Jordan Air Jordan 4',  'Jordan',      'enfants', 149, '/images/sneaker-12-jordan-air-jordan-4.svg']
 ];
 
 function ensureDirs() {

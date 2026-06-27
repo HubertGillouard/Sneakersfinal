@@ -1,4 +1,4 @@
-const API_ORIGIN = import.meta.env.VITE_API_ORIGIN || 'http://localhost:5051';
+export const API_ORIGIN = import.meta.env.VITE_API_ORIGIN || 'http://localhost:5051';
 const API = `${API_ORIGIN}/api`;
 
 function token() { return localStorage.getItem('token') || ''; }

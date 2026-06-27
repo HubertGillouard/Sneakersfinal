@@ -2,7 +2,7 @@
   {
     "id": 1,
     "email": "admin@test.com",
-    "password": "$2b$10$HGG4dhsx6KBw0mdHf9XZ7eQosNo15sSTzXyZy3E2rBCEsUDDzw.2q",
+    "password": "$2b$10$s93YQ8t.oPGX845.BXMpFuuT07/xm1Hm5nNYZC2FnYSSmaGNipgnm",
     "role": "admin",
     "firstName": "Max",
     "lastName": "Admin"
@@ -10,7 +10,7 @@
   {
     "id": 2,
     "email": "seller@test.com",
-    "password": "$2b$10$O6b8sRPVIAI8v76V7u/Ot.GPSOJHofUmynzz94UsuImwr6uG8hupW",
+    "password": "$2b$10$jMfj9PoL3CN4cH0onRdVgO5HO49tQY2v/eYbnRkdr9ahKG/LaJKha",
     "role": "seller",
     "firstName": "Hubert",
     "lastName": "Seller"
@@ -18,7 +18,7 @@
   {
     "id": 3,
     "email": "client@test.com",
-    "password": "$2b$10$wC6RCcQ.6SdGA0LZih2QQ.V87kGuXhi//7dIEORogYLr/1cr9zQSK",
+    "password": "$2b$10$8N9PC2AsvxT45bWsDUdUgecZ3rdBT..q4jUw5.trMvnV3.nByAiCe",
     "role": "client",
     "firstName": "Jean",
     "lastName": "Client"
